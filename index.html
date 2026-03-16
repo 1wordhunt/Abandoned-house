@@ -1,85 +1,59 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Abandoned House - Granny</title>
-    <style>
-        body { margin: 0; overflow: hidden; background-color: #000; }
-        #crosshair { position: absolute; top: 50%; left: 50%; width: 10px; height: 10px; background: red; border-radius: 50%; transform: translate(-50%, -50%); }
-    </style>
+    <title>Granny: Abandoned House</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>body { margin: 0; overflow: hidden; background: #000; }</style>
 </head>
 <body>
-    <div id="crosshair"></div>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
 
     <script>
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // 1. IŞIKLANDIRMA (El Feneri Etkisi)
-        const flashlight = new THREE.PointLight(0xffffff, 1.5, 12);
-        camera.add(flashlight);
+        // 1. IŞIKLANDIRMA (Evi görebilmek için şart)
+        const light = new THREE.PointLight(0xffffff, 1, 100);
+        camera.add(light);
         scene.add(camera);
-        scene.ambientLight = new THREE.AmbientLight(0x050505); // Çok az genel ışık
 
-        // 2. SENİN GITHUB EVİNİ YÜKLEME
-        const objLoader = new THREE.OBJLoader();
-        objLoader.load('uploads_files_5503139_Abandon_House.obj', function (object) {
-            // Ev çok büyük gelirse 0.1 yap, küçük gelirse 5 yap.
-            object.scale.set(1, 1, 1); 
-            object.position.set(0, 0, 0);
-            scene.add(object);
+        // 2. SENİN GITHUB EVİN (Abandon_House)
+        const loader = new THREE.OBJLoader();
+        // Dosya adı GitHub'dakiyle aynı olmalı!
+        loader.load('uploads_files_5503139_Abandon_House.obj', (obj) => {
+            obj.scale.set(0.1, 0.1, 0.1); // Çok büyükse küçültür
+            scene.add(obj);
             console.log("Ev yüklendi!");
         });
 
-        // 3. GRANNY (Korkunç Kırmızı Silüet)
-        const gGeo = new THREE.BoxGeometry(0.7, 2, 0.7);
+        // 3. GRANNY (O kırmızı blok)
+        const gGeo = new THREE.BoxGeometry(0.8, 2, 0.8);
         const gMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
         const granny = new THREE.Mesh(gGeo, gMat);
-        granny.position.set(5, 1, -10); // Başlangıç konumu
+        granny.position.set(5, 0, -10);
         scene.add(granny);
 
-        camera.position.set(0, 1.6, 5); // Oyuncu başlangıç
-
-        // 4. KONTROLLER VE TAKİP
-        let moveForward = false;
-        document.addEventListener('touchstart', () => moveForward = true);
-        document.addEventListener('touchend', () => moveForward = false);
+        camera.position.z = 5;
+        let move = false;
+        window.ontouchstart = () => move = true;
+        window.ontouchend = () => move = false;
 
         function animate() {
             requestAnimationFrame(animate);
-
-            // Granny Takip Yapay Zekası
-            const speed = 0.035; // Granny'nin hızı
             granny.lookAt(camera.position);
-            granny.translateZ(speed);
-
-            // Oyuncu Hareketi (Ekrana basınca ileri)
-            if (moveForward) {
-                camera.translateZ(-0.1);
-            }
-
-            // Ölüm Kontrolü (Yakalanma)
-            if (granny.position.distanceTo(camera.position) < 1.3) {
+            granny.translateZ(0.03); // Granny'nin hızı
+            if(move) camera.translateZ(-0.1);
+            if(granny.position.distanceTo(camera.position) < 1.2) {
                 alert("YAKALANDIN!");
                 location.reload();
             }
-
             renderer.render(scene, camera);
         }
         animate();
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
     </script>
 </body>
 </html>
